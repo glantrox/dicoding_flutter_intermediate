@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -119,93 +121,96 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       appBar: AppBar(
         title: const Text('Add Story'),
       ),
-      body: Container(
-        margin: const EdgeInsets.all(12),
-        child: Form(
-          key: formKey,
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () => _onGalleryView(),
-                child: Container(
-                    width: double.maxFinite,
-                    height: 350,
-                    decoration: const BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                    child: context.watch<FileProvider>().imagePath == null
-                        ? const Center(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.image_outlined,
-                                  size: 100,
-                                ),
-                                SizedBox(height: 12),
-                                Text(
-                                  'Click Here to Pick Image',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(fontSize: 12),
-                                )
-                              ],
-                            ),
-                          )
-                        : _showImage()),
-              ),
-              const SizedBox(height: 22),
-              context.watch<FileProvider>().imagePath != null
-                  ? Container(
-                      margin: const EdgeInsets.all(4),
-                      child: TextFormField(
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please add Description.';
-                          }
-                          return null;
-                        },
-                        controller: _descriptionController,
-                        decoration:
-                            const InputDecoration(hintText: 'Description'),
+      body: SingleChildScrollView(
+        child: Container(
+          margin: const EdgeInsets.all(12),
+          child: Form(
+            key: formKey,
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: () => _onGalleryView(),
+                  child: Container(
+                      width: double.maxFinite,
+                      height: 350,
+                      decoration: const BoxDecoration(
+                        color: Colors.grey,
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
                       ),
-                    )
-                  : const Text(''),
-              const SizedBox(height: 22),
-              context.watch<FileProvider>().imagePath != null
-                  ? GestureDetector(
-                      onTap: () => _upload(),
-                      child: Container(
-                        width: double.maxFinite,
-                        height: 54,
-                        decoration: const BoxDecoration(
-                            color: Colors.blue,
-                            borderRadius: BorderRadius.all(Radius.circular(8))),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 14),
-                          child: Center(
-                              child: context
-                                          .watch<StoriesProvider>()
-                                          .uploadStoryState ==
-                                      ApiState.loading
-                                  ? const CircularProgressIndicator()
-                                  : context
-                                              .watch<StoriesProvider>()
-                                              .uploadStoryState ==
-                                          ApiState.init
-                                      ? const Text(
-                                          'Upload',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w600),
-                                        )
-                                      : Text('')),
+                      child: context.watch<FileProvider>().imagePath == null
+                          ? const Center(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.image_outlined,
+                                    size: 100,
+                                  ),
+                                  SizedBox(height: 12),
+                                  Text(
+                                    'Click Here to Pick Image',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 12),
+                                  )
+                                ],
+                              ),
+                            )
+                          : _showImage()),
+                ),
+                const SizedBox(height: 22),
+                context.watch<FileProvider>().imagePath != null
+                    ? Container(
+                        margin: const EdgeInsets.all(4),
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please add Description.';
+                            }
+                            return null;
+                          },
+                          controller: _descriptionController,
+                          decoration:
+                              const InputDecoration(hintText: 'Description'),
                         ),
-                      ),
-                    )
-                  : const Text('')
-            ],
+                      )
+                    : const Text(''),
+                const SizedBox(height: 22),
+                context.watch<FileProvider>().imagePath != null
+                    ? GestureDetector(
+                        onTap: () => _upload(),
+                        child: Container(
+                          width: double.maxFinite,
+                          height: 54,
+                          decoration: const BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(8))),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 14),
+                            child: Center(
+                                child: context
+                                            .watch<StoriesProvider>()
+                                            .uploadStoryState ==
+                                        ApiState.loading
+                                    ? const CircularProgressIndicator()
+                                    : context
+                                                .watch<StoriesProvider>()
+                                                .uploadStoryState ==
+                                            ApiState.init
+                                        ? const Text(
+                                            'Upload',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600),
+                                          )
+                                        : Text('')),
+                          ),
+                        ),
+                      )
+                    : const Text('')
+              ],
+            ),
           ),
         ),
       ),
@@ -214,9 +219,10 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
 
   Widget _showImage() {
     final provider = context.read<FileProvider>();
+    File path = File(provider.imagePath ?? "");
     return FittedBox(
         clipBehavior: Clip.hardEdge,
         fit: BoxFit.cover,
-        child: Image.asset(provider.imagePath ?? ""));
+        child: Image.file(path));
   }
 }
