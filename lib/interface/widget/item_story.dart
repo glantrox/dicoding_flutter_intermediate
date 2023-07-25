@@ -39,7 +39,10 @@ class ItemStory extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        toCapitalize(story.description ?? ""),
+                        toCapitalize(
+                          story.description ?? "",
+                        ),
+                        maxLines: 2,
                         textAlign: TextAlign.start,
                         style: const TextStyle(
                             color: Colors.white, fontWeight: FontWeight.bold),

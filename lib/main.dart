@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:submission_intermediate/core/api/auth_repository.dart';
+import 'package:submission_intermediate/core/api/map_repository.dart';
 import 'package:submission_intermediate/core/api/repository.dart';
-
 import 'package:submission_intermediate/providers/auth_provider.dart';
 import 'package:submission_intermediate/providers/file_provider.dart';
+import 'package:submission_intermediate/providers/map_provider.dart';
 import 'package:submission_intermediate/providers/stories_provider.dart';
 import 'package:submission_intermediate/router/router_delegate.dart';
 
@@ -21,12 +22,15 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late AuthProvider _authProvider;
+  late MapProvider _mapProvider;
   late MyRouterDelegate _myRouterDelegate;
 
   @override
   void initState() {
+    final MapRepository mapRepository = MapRepository();
     final AuthRepository authRepository = AuthRepository();
     final Repository repository = Repository();
+    _mapProvider = MapProvider(mapRepository);
     _authProvider = AuthProvider(authRepository);
     _myRouterDelegate = MyRouterDelegate(
       authRepository,
@@ -41,7 +45,8 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider(create: (context) => FileProvider()),
         ChangeNotifierProvider(create: (context) => StoriesProvider()),
-        ChangeNotifierProvider(create: (context) => _authProvider)
+        ChangeNotifierProvider(create: (context) => _authProvider),
+        ChangeNotifierProvider(create: (context) => _mapProvider)
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:submission_intermediate/core/static/enum.dart';
-
 import 'package:submission_intermediate/interface/static/app_colors.dart';
 import 'package:submission_intermediate/interface/widget/item_story.dart';
 import 'package:submission_intermediate/providers/stories_provider.dart';
@@ -23,18 +22,23 @@ class StoryList extends StatefulWidget {
 
 class _StoryListState extends State<StoryList> {
   bool _isLogoutDialogVisible = false;
-
   late StoriesProvider _storiesProvider;
-
-  Future<void> _getStories() async {
-    return await _storiesProvider.getListOfStories();
-  }
+  final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
-    Future.delayed(const Duration(milliseconds: 300), () {
-      return _getStories();
+    final apiProvider = context.read<StoriesProvider>();
+
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >=
+          scrollController.position.maxScrollExtent) {
+        if (apiProvider.currentPageItems != null) {
+          apiProvider.getListOfStories();
+        }
+      }
     });
+
+    Future.microtask(() async => apiProvider.getListOfStories());
     super.initState();
   }
 
@@ -48,7 +52,7 @@ class _StoryListState extends State<StoryList> {
   Widget build(BuildContext context) {
     _storiesProvider = Provider.of<StoriesProvider>(context);
     final stories = _storiesProvider.listOfStories;
-    final listOfStoriesState = _storiesProvider.listOfStoriesState;
+    final storyState = _storiesProvider.listOfStoriesState;
 
     return _isLogoutDialogVisible
         ? StatefulBuilder(
@@ -71,12 +75,18 @@ class _StoryListState extends State<StoryList> {
           )
         : Scaffold(
             backgroundColor: AppColors.backgroundColor,
-            floatingActionButton: FloatingActionButton(
-              backgroundColor: Colors.blue,
-              onPressed: () => widget.onGotoAddScreen(),
-              child: const Icon(
-                Icons.add,
-                color: Colors.white,
+            floatingActionButton: Visibility(
+              visible:
+                  storyState == ApiState.loading || storyState == ApiState.error
+                      ? false
+                      : true,
+              child: FloatingActionButton(
+                backgroundColor: Colors.blue,
+                onPressed: () => widget.onGotoAddScreen(),
+                child: const Icon(
+                  Icons.add,
+                  color: Colors.white,
+                ),
               ),
             ),
             appBar: AppBar(
@@ -91,26 +101,61 @@ class _StoryListState extends State<StoryList> {
               backgroundColor: AppColors.backgroundColor,
               title: const Text('Story list'),
             ),
-            body: RefreshIndicator(
-              onRefresh: () => _getStories(),
-              child: listOfStoriesState == ApiState.loading
-                  ? const Center(child: Text('Loading Data...'))
-                  : listOfStoriesState == ApiState.error
-                      ? const Center(
-                          child: Text(
-                            'Check your Connection',
-                            textAlign: TextAlign.center,
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: stories.length,
-                          itemBuilder: (builder, index) {
-                            return ItemStory(
-                              story: stories[index],
-                              onTap: () =>
-                                  widget.onGotoDetail(stories[index].id ?? ""),
+            body: Consumer<StoriesProvider>(
+              builder: (context, value, child) {
+                final state = value.listOfStoriesState;
+                if (state == ApiState.loading && value.currentPageItems == 1) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.blue,
+                    ),
+                  );
+                } else if (state == ApiState.success) {
+                  return RefreshIndicator(
+                    onRefresh: () {
+                      _storiesProvider.clearDetailStory();
+                      return _storiesProvider.getListOfStories();
+                    },
+                    child: ListView.builder(
+                        itemCount: stories.length +
+                            (value.currentPageItems != null ? 1 : 0),
+                        controller: scrollController,
+                        itemBuilder: (context, index) {
+                          if (index == stories.length) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(22),
+                                child: CircularProgressIndicator(
+                                  color: Colors.grey,
+                                ),
+                              ),
                             );
-                          }),
+                          }
+                          return ItemStory(
+                            story: stories[index],
+                            onTap: () =>
+                                widget.onGotoDetail(stories[index].id ?? ""),
+                          );
+                        }),
+                  );
+                } else {
+                  return const Center(
+                      child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.signal_cellular_connected_no_internet_4_bar,
+                        size: 62,
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        'Connection Timed Out  ',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ));
+                }
+              },
             ));
   }
 }

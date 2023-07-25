@@ -21,11 +21,20 @@ class _LoginScreenState extends State<LoginScreen> {
   final formKey = GlobalKey<FormState>();
   bool _onObsecure = true;
 
-  // Obsecure Password Form Field
+  // Obsecure Password TextField
   _toggleObsecure() {
     setState(() {
       _onObsecure = !_onObsecure;
     });
+  }
+
+  // Disposes all TextFields
+  _disposeTextFields() {
+    if (_emailController.text.isNotEmpty ||
+        _passwordController.text.isNotEmpty) {
+      _emailController.dispose();
+      _passwordController.dispose();
+    }
   }
 
   // Login Function
@@ -41,6 +50,12 @@ class _LoginScreenState extends State<LoginScreen> {
           ? widget.onLogin()
           : scaffoldMessenger.showSnackBar(SnackBar(content: Text(error)));
     }
+  }
+
+  @override
+  void dispose() {
+    _disposeTextFields();
+    super.dispose();
   }
 
   @override

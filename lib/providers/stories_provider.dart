@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart';
 import 'package:submission_intermediate/core/api/repository.dart';
 import 'package:submission_intermediate/core/models/add_response.dart';
 import 'package:submission_intermediate/core/static/enum.dart';
@@ -15,11 +16,20 @@ class StoriesProvider extends ChangeNotifier {
   List<Story> _listOfStories = [];
   List<Story> get listOfStories => _listOfStories;
 
+  int? _currentPageItems = 1;
+  int? get currentPageItems => _currentPageItems;
+
+  int sizeItems = 10;
+
   ApiState listOfStoriesState = ApiState.init;
   ApiState detailStoryState = ApiState.init;
   ApiState uploadStoryState = ApiState.init;
 
   String message = "";
+
+  // O=========================================================================>
+  // ? Additional Functions
+  // <=========================================================================O
 
   _setErrorMessage(String? value) async {
     message = value ?? "Unknown";
@@ -41,11 +51,42 @@ class StoriesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  clearPages() {
+    _currentPageItems = null;
+    notifyListeners();
+  }
+
+  _setDebugMessages(
+    String property,
+    ClientException? clientException,
+    String? apiException,
+  ) {
+    final pembatas =
+        "\nO=========================================================================>\n";
+    return debugPrint(pembatas +
+            'Debug Exception :\n' +
+            property +
+            'Client Exception:\n' +
+            clientException!.message ??
+        "No Client Exception" + 'API Exception:\n' + apiException! ??
+        "No API Exception" + pembatas);
+  }
+
   Future<void> clearDetailStory() async {
     _currentStory = null;
     detailStoryState = ApiState.init;
     notifyListeners();
   }
+
+  Future<void> clearListOfStories() async {
+    _listOfStories = [];
+    _currentPageItems = 1;
+    notifyListeners();
+  }
+
+  // O=========================================================================>
+  // ? Upload Story
+  // <=========================================================================O
 
   Future<void> uploadStory(
     List<int> bytes,
@@ -73,14 +114,27 @@ class StoriesProvider extends ChangeNotifier {
     }
   }
 
+  // O=========================================================================>
+  // ? Get list of Stories
+  // <=========================================================================O
+
   Future<void> getListOfStories() async {
     try {
-      _setlistOfStoriesState(ApiState.loading);
-      final resp = await Repository().getStories();
+      if (_currentPageItems == 1) {
+        _setlistOfStoriesState(ApiState.loading);
+      }
+
+      final resp = await Repository().getStories(_currentPageItems!, sizeItems);
       if (resp.error == false) {
+        if (resp.listStory!.length < sizeItems) {
+          _currentPageItems = null;
+        } else {
+          _currentPageItems = _currentPageItems! + 1;
+          _listOfStories.addAll(resp.listStory ?? []);
+        }
+
         _setlistOfStoriesState(ApiState.success);
-        _listOfStories = resp.listStory ?? [];
-        debugPrint('Provider Success');
+        notifyListeners();
       } else {
         _setlistOfStoriesState(ApiState.error);
         _listOfStories = [];
@@ -92,6 +146,10 @@ class StoriesProvider extends ChangeNotifier {
       _setErrorMessage(e.toString());
     }
   }
+
+  // O=========================================================================>
+  // ? Get story detail
+  // <=========================================================================O
 
   Future<void> getStoryDetail(String id) async {
     try {

@@ -1,22 +1,23 @@
 import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submission_intermediate/core/models/add_response.dart';
 import 'package:submission_intermediate/core/models/storylist_response.dart';
 import 'package:submission_intermediate/core/static/strings.dart';
-
 import '../models/story_upload.dart';
 import '../models/storydetail_response.dart';
 
 class Repository {
   final String _baseUrl = AppString.baseUrl;
 
+  // O=========================================================================>
+  // ? Additional Functions //
+  // <=========================================================================O
+
   _delay() async {
-    return await Future.delayed(const Duration(milliseconds: 1500));
+    return await Future.delayed(const Duration(milliseconds: 2000));
   }
 
   Future<SharedPreferences> _sharedPref() async {
@@ -28,6 +29,10 @@ class Repository {
     return pref.getString(AppString.tokenKey);
   }
 
+  // O=========================================================================>
+  // ? POST : Upload Story //
+  // <=========================================================================O
+
   Future<AddResponse> uploadDocument(
     List<int> bytes,
     String fileName,
@@ -37,8 +42,17 @@ class Repository {
   ) async {
     final token = await _savedToken();
     String url = "$_baseUrl/stories";
-
     final uri = Uri.parse(url);
+    final Map<String, String> fields = {
+      "description": description,
+      "lat": '$lat',
+      "lon": '$lon',
+    };
+    final Map<String, String> headers = {
+      "Content-type": "multipart/form-data",
+      "Authorization": "Bearer $token",
+    };
+
     await _delay();
     try {
       var request = http.MultipartRequest('POST', uri);
@@ -48,15 +62,6 @@ class Repository {
         bytes,
         filename: fileName,
       );
-      final Map<String, String> fields = {
-        "description": description,
-        "lat": '$lat',
-        "lon": '$lon',
-      };
-      final Map<String, String> headers = {
-        "Content-type": "multipart/form-data",
-        "Authorization": "Bearer $token",
-      };
 
       request.files.add(multiPartFile);
       request.fields.addAll(fields);
@@ -139,7 +144,7 @@ class Repository {
         return body;
       } else {
         final error =
-            AddResponse.fromMap(jsonDecode(response.body)).error.toString();
+            AddResponse.fromMap(jsonDecode(response.body)).message.toString();
 
         throw error;
       }
@@ -152,15 +157,21 @@ class Repository {
   // ? GET : Get Stories
   // <=========================================================================O
 
-  Future<StoryListResponse> getStories() async {
+  Future<StoryListResponse> getStories(
+      [int pageItems = 1, int sizeItems = 10]) async {
     final token = await _savedToken();
     Map<String, String> header = {"Authorization": "Bearer $token"};
     try {
+      debugPrint('Loading...');
       await _delay();
-      final response =
-          await get(Uri.parse('$_baseUrl/stories'), headers: header);
+
+      final response = await get(
+        Uri.parse('$_baseUrl/stories?page=$pageItems&size=$sizeItems'),
+        headers: header,
+      ).timeout(const Duration(seconds: 60));
       if (response.statusCode == 200 || response.statusCode == 201) {
         final body = StoryListResponse.fromJson(response.body);
+        debugPrint('Page of Items $pageItems');
         return body;
       } else {
         throw 'Terjadi Kesalahan Server';

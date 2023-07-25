@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:provider/provider.dart';
 import 'package:submission_intermediate/core/static/enum.dart';
-import 'package:submission_intermediate/core/utils/map.dart';
 import 'package:submission_intermediate/core/utils/parser.dart';
 import 'package:submission_intermediate/providers/stories_provider.dart';
 
 class StoryDetail extends StatefulWidget {
   final String storyId;
-  const StoryDetail({super.key, required this.storyId});
+  final Function(LatLng) onGotoLocation;
+  const StoryDetail(
+      {super.key, required this.storyId, required this.onGotoLocation});
 
   @override
   State<StoryDetail> createState() => _StoryDetailState();
@@ -56,8 +58,20 @@ class _StoryDetailState extends State<StoryDetail> {
                 )
               : detailState == ApiState.error
                   ? const Center(
-                      child: Text('Terjadi Kesalahan Server '),
-                    )
+                      child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.signal_cellular_connected_no_internet_4_bar,
+                          size: 62,
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Connection Timed Out  ',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ))
                   : detailState == ApiState.success
                       ? SingleChildScrollView(
                           child: Column(
@@ -133,8 +147,9 @@ class _StoryDetailState extends State<StoryDetail> {
                               ),
                               story?.lat != null || story?.lon != null
                                   ? GestureDetector(
-                                      onTap: () => MapUtils.openMap(
-                                          story?.lat ?? 0.0, story?.lon ?? 0.0),
+                                      onTap: () => widget.onGotoLocation(LatLng(
+                                          story?.lat ?? 0.0,
+                                          story?.lon ?? 0.0)),
                                       child: Container(
                                         margin: const EdgeInsets.all(12),
                                         width: double.maxFinite,
@@ -156,7 +171,7 @@ class _StoryDetailState extends State<StoryDetail> {
                                         ),
                                       ),
                                     )
-                                  : Text('')
+                                  : const Text('')
                             ],
                           ),
                         )
