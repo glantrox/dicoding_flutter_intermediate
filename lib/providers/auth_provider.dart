@@ -48,18 +48,10 @@ class AuthProvider extends ChangeNotifier {
     String? clientException,
     String? apiException,
   ) {
-    final pembatas =
+    const pembatas =
         "\nO=========================================================================>\n";
     return debugPrint(
-      pembatas +
-              'Debug Exception : $property\n' +
-              'Client Exception:\n' +
-              clientException! ??
-          ""
-                  "No Client Exception" +
-              'API Exception:\n' +
-              apiException! ??
-          "No API Exception" + pembatas,
+      '${pembatas}Debug Exception : $property\nClient Exception:\n${clientException!}',
     );
   }
 

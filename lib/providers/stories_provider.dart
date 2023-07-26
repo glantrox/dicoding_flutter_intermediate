@@ -31,16 +31,19 @@ class StoriesProvider extends ChangeNotifier {
   // ? Additional Functions
   // <=========================================================================O
 
-  _setErrorMessage(String? value) async {
+  // Set Current State of API Message
+  _setMessage(String? value) async {
     message = value ?? "Unknown";
     notifyListeners();
   }
 
+  // Set Current state of Upload
   _setUploadingState(ApiState value) {
     uploadStoryState = value;
     notifyListeners();
   }
 
+  // Set Current State
   _setlistOfStoriesState(ApiState value) {
     listOfStoriesState = value;
     notifyListeners();
@@ -61,15 +64,10 @@ class StoriesProvider extends ChangeNotifier {
     ClientException? clientException,
     String? apiException,
   ) {
-    final pembatas =
+    const pembatas =
         "\nO=========================================================================>\n";
-    return debugPrint(pembatas +
-            'Debug Exception :\n' +
-            property +
-            'Client Exception:\n' +
-            clientException!.message ??
-        "No Client Exception" + 'API Exception:\n' + apiException! ??
-        "No API Exception" + pembatas);
+    return debugPrint(
+        '${pembatas}Debug Exception :\n${property}Client Exception:\n${clientException!.message}');
   }
 
   Future<void> clearDetailStory() async {
@@ -101,7 +99,7 @@ class StoriesProvider extends ChangeNotifier {
           .uploadDocument(bytes, fileName, description, lat, lon);
       if (resp.error == false) {
         _setlistOfStoriesState(ApiState.success);
-        _setErrorMessage(resp.message ?? "Upload Success.");
+        _setMessage(resp.message ?? "Upload Success.");
         _addResponse = resp;
       } else {
         _setlistOfStoriesState(ApiState.error);
@@ -110,7 +108,7 @@ class StoriesProvider extends ChangeNotifier {
       return;
     } catch (e) {
       _setlistOfStoriesState(ApiState.error);
-      _setErrorMessage(e.toString());
+      _setMessage(e.toString());
     }
   }
 
@@ -143,7 +141,7 @@ class StoriesProvider extends ChangeNotifier {
       return;
     } catch (e) {
       _setlistOfStoriesState(ApiState.error);
-      _setErrorMessage(e.toString());
+      _setMessage(e.toString());
     }
   }
 
@@ -166,7 +164,7 @@ class StoriesProvider extends ChangeNotifier {
       return;
     } catch (e) {
       _setDetailStoryState(ApiState.error);
-      _setErrorMessage(e.toString());
+      _setMessage(e.toString());
     }
   }
 }

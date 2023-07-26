@@ -18,5 +18,6 @@ class MapUtils {
     } catch (e) {
       return "Error getting address";
     }
+    return null;
   }
 }

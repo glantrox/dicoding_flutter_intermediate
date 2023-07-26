@@ -139,18 +139,39 @@ class _StoryListState extends State<StoryList> {
                         }),
                   );
                 } else {
-                  return const Center(
+                  return Center(
                       child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.signal_cellular_connected_no_internet_4_bar,
                         size: 62,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Text(
-                        'Connection Timed Out  ',
-                        style: TextStyle(fontSize: 12),
+                        'Connection Timed Out\n ${_storiesProvider.message}  ',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              _storiesProvider.clearListOfStories();
+                              _storiesProvider.getListOfStories();
+                            },
+                            child: const Text(
+                              'Retry',
+                              style:
+                                  TextStyle(fontSize: 12, color: Colors.blue),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.refresh,
+                            color: Colors.blue,
+                            size: 13,
+                          )
+                        ],
                       ),
                     ],
                   ));

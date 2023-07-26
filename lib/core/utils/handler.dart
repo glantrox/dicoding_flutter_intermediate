@@ -7,6 +7,7 @@ Future<bool> handleLocationPermission(BuildContext context) async {
 
   serviceEnabled = await Geolocator.isLocationServiceEnabled();
   if (!serviceEnabled) {
+    // ignore: use_build_context_synchronously
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
             'Location services are disabled. Please enable the services')));
@@ -16,12 +17,14 @@ Future<bool> handleLocationPermission(BuildContext context) async {
   if (permission == LocationPermission.denied) {
     permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Location permissions are denied')));
       return false;
     }
   }
   if (permission == LocationPermission.deniedForever) {
+    // ignore: use_build_context_synchronously
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
             'Location permissions are permanently denied, we cannot request permissions.')));

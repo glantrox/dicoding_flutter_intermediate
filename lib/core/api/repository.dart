@@ -74,9 +74,8 @@ class Repository {
       final String responseData = String.fromCharCodes(responseList);
 
       if (statusCode == 201) {
-        final AddResponse uploadResponse = AddResponse.fromJson(
-          responseData,
-        );
+        Map<String, dynamic> mapped = jsonDecode(responseData);
+        final AddResponse uploadResponse = AddResponse.fromJson(mapped);
         return uploadResponse;
       } else {
         throw Exception("Upload file error");
@@ -98,12 +97,12 @@ class Repository {
       final response =
           await get(Uri.parse('$_baseUrl/stories/$id'), headers: header);
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final body = StoryDetailResponse.fromJson(response.body);
+        Map<String, dynamic> mapped = jsonDecode(response.body);
+        final body = StoryDetailResponse.fromJson(mapped);
         return body;
       } else {
-        final error = StoryDetailResponse.fromMap(jsonDecode(response.body))
-            .message
-            .toString();
+        Map<String, dynamic> mapped = jsonDecode(response.body);
+        final error = StoryDetailResponse.fromJson(mapped).message.toString();
         throw '$error $id';
       }
     } catch (e) {
@@ -139,12 +138,13 @@ class Repository {
         headers: addHeaders,
       );
       if (response.statusCode == 201 || response.statusCode == 200) {
-        final body = AddResponse.fromJson(response.body);
+        Map<String, dynamic> mapped = jsonDecode(response.body);
+        final body = AddResponse.fromJson(mapped);
 
         return body;
       } else {
-        final error =
-            AddResponse.fromMap(jsonDecode(response.body)).message.toString();
+        Map<String, dynamic> mapped = jsonDecode(response.body);
+        final error = AddResponse.fromJson(mapped).message.toString();
 
         throw error;
       }
@@ -170,7 +170,8 @@ class Repository {
         headers: header,
       ).timeout(const Duration(seconds: 60));
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final body = StoryListResponse.fromJson(response.body);
+        Map<String, dynamic> mapped = jsonDecode(response.body);
+        final body = StoryListResponse.fromJson(mapped);
         debugPrint('Page of Items $pageItems');
         return body;
       } else {

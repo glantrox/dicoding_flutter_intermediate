@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:json_annotation/json_annotation.dart';
+
+@JsonSerializable()
 class StoryUpload {
   String? description;
   File? photo;

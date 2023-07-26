@@ -16,6 +16,10 @@ class MapProvider extends ChangeNotifier {
   LatLng? _currentLatLng;
   LatLng? get currentLatLng => _currentLatLng;
 
+  // O=========================================================================>
+  // ? Get Main Address by LatLng
+  // <=========================================================================O
+
   Future<void> getMainAddress(LatLng latLng) async {
     final result = await mapRepository.getMainAddress(latLng);
     if (result != null) {
@@ -27,6 +31,10 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // O=========================================================================>
+  // ? Get Sub Address by LatLng
+  // <=========================================================================O
+
   Future<void> getSubAddress(LatLng latLng) async {
     final result = await mapRepository.getSubAddress(latLng);
     if (result != null) {
@@ -37,6 +45,10 @@ class MapProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  // O=========================================================================>
+  // ? Get Current Position
+  // <=========================================================================O
 
   Future<void> getCurrentPosition(BuildContext context) async {
     final hasPermission = await handleLocationPermission(context);
@@ -50,12 +62,18 @@ class MapProvider extends ChangeNotifier {
     });
   }
 
+  // O=========================================================================>
+  // ? Additional Functions
+  // <=========================================================================O
+
+  // Set Current State of Latitude Longitude
   Future<void> setCurrentLocation(LatLng latLng) async {
     _currentLatLng = latLng;
     notifyListeners();
     return;
   }
 
+  // Clears Current State of Latitude Longitude
   Future<void> clearLatLng() async {
     _currentLatLng = null;
     notifyListeners();
