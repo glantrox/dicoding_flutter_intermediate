@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:submission_intermediate/core/api/auth_repository.dart';
 import 'package:submission_intermediate/core/api/repository.dart';
@@ -8,10 +9,10 @@ import 'package:submission_intermediate/interface/auth/login_screen.dart';
 import 'package:submission_intermediate/interface/auth/register_screen.dart';
 import 'package:submission_intermediate/interface/screens/story_add.dart';
 import 'package:submission_intermediate/interface/screens/story_detail.dart';
-
 import 'package:submission_intermediate/interface/screens/story_list.dart';
-
+import 'package:submission_intermediate/interface/screens/story_location.dart';
 import '../interface/auth/splash_screen.dart';
+import '../interface/screens/story_set_location.dart';
 
 class MyRouterDelegate extends RouterDelegate
     with ChangeNotifier, PopNavigatorRouterDelegateMixin {
@@ -19,14 +20,14 @@ class MyRouterDelegate extends RouterDelegate
   final Repository repository;
   final GlobalKey<NavigatorState> _navigatorKey;
 
-  bool? isLoggedIn;
   List<Page> _historyStack = [];
   CurrentAuth _currentAuth = CurrentAuth.auth;
 
+  // Logged in Stack
   bool isAddStory = false;
-  bool isWantToLogout = false;
-
   String? _selectedStory;
+  LatLng? _selectedLocation;
+  bool isSetLocation = false;
 
   MyRouterDelegate(this.authRepository, this.repository)
       : _navigatorKey = GlobalKey<NavigatorState>() {
@@ -68,6 +69,7 @@ class MyRouterDelegate extends RouterDelegate
         }
 
         _selectedStory != null ? _clearSelectedStory() : null;
+        _selectedLocation != null ? _clearCurrentLocation() : null;
         isAddStory ? _setIsForm(false) : null;
 
         return true;
@@ -109,31 +111,51 @@ class MyRouterDelegate extends RouterDelegate
   // Stack : Logged In
   List<Page> get _loggedInStack => [
         MaterialPage(
-            key: storyListScreenKey,
-            child: StoryList(
-              onGotoAddScreen: () => _setIsForm(true),
-              onGotoDetail: (String storyId) => _setSelectedStory(storyId),
-              onLogout: () => _setLogOut(),
-            )),
+          key: storyListScreenKey,
+          child: StoryList(
+            onGotoAddScreen: () => _setIsForm(true),
+            onGotoDetail: (String storyId) => _setSelectedStory(storyId),
+            onLogout: () => _setLogOut(),
+          ),
+        ),
         if (_selectedStory != null)
           MaterialPage(
+            key: storyDetailScreenKey,
             child: StoryDetail(
               storyId: _selectedStory ?? "",
+              onGotoLocation: (latlng) => _setCurrentLocation(latlng),
             ),
           ),
+        if (_selectedLocation != null)
+          MaterialPage(
+              key: storyLocationScreenKey,
+              child: StoryLocationScreen(
+                latLng: _selectedLocation!,
+                onPop: () => _clearCurrentLocation(),
+              )),
         if (isAddStory)
           MaterialPage(
             key: addStoryScreenKey,
             child: AddStoryScreen(
+              onGotoSetLocation: () => _setIsSetLocation(true),
               onSuccessUpload: () => _setIsForm(false),
             ),
           ),
+        if (isSetLocation)
+          MaterialPage(
+            key: storySetLocationScreenKey,
+            child: SetLocationScreen(
+              onPop: () => _setIsSetLocation(false),
+              onSaveLocation: () => _setIsSetLocation(false),
+            ),
+          )
       ];
   // Stack : Guest Stack
   List<Page> get _guestStack => [
         MaterialPage(
           key: addStoryScreenKey,
           child: AddStoryScreen(
+            onGotoSetLocation: () => _setIsSetLocation(true),
             onSuccessUpload: () => _setAuthState(CurrentAuth.login),
           ),
         )
@@ -164,6 +186,21 @@ class MyRouterDelegate extends RouterDelegate
 
   _setIsForm(bool value) async {
     isAddStory = value;
+    notifyListeners();
+  }
+
+  _setCurrentLocation(LatLng value) async {
+    _selectedLocation = value;
+    notifyListeners();
+  }
+
+  _clearCurrentLocation() async {
+    _selectedLocation = null;
+    notifyListeners();
+  }
+
+  _setIsSetLocation(bool value) async {
+    isSetLocation = value;
     notifyListeners();
   }
 

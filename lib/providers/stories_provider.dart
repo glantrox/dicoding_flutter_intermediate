@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart';
 import 'package:submission_intermediate/core/api/repository.dart';
 import 'package:submission_intermediate/core/models/add_response.dart';
 import 'package:submission_intermediate/core/static/enum.dart';
@@ -15,22 +16,34 @@ class StoriesProvider extends ChangeNotifier {
   List<Story> _listOfStories = [];
   List<Story> get listOfStories => _listOfStories;
 
+  int? _currentPageItems = 1;
+  int? get currentPageItems => _currentPageItems;
+
+  int sizeItems = 10;
+
   ApiState listOfStoriesState = ApiState.init;
   ApiState detailStoryState = ApiState.init;
   ApiState uploadStoryState = ApiState.init;
 
   String message = "";
 
-  _setErrorMessage(String? value) async {
+  // O=========================================================================>
+  // ? Additional Functions
+  // <=========================================================================O
+
+  // Set Current State of API Message
+  _setMessage(String? value) async {
     message = value ?? "Unknown";
     notifyListeners();
   }
 
+  // Set Current state of Upload
   _setUploadingState(ApiState value) {
     uploadStoryState = value;
     notifyListeners();
   }
 
+  // Set Current State
   _setlistOfStoriesState(ApiState value) {
     listOfStoriesState = value;
     notifyListeners();
@@ -41,11 +54,37 @@ class StoriesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  clearPages() {
+    _currentPageItems = null;
+    notifyListeners();
+  }
+
+  _setDebugMessages(
+    String property,
+    ClientException? clientException,
+    String? apiException,
+  ) {
+    const pembatas =
+        "\nO=========================================================================>\n";
+    return debugPrint(
+        '${pembatas}Debug Exception :\n${property}Client Exception:\n${clientException!.message}');
+  }
+
   Future<void> clearDetailStory() async {
     _currentStory = null;
     detailStoryState = ApiState.init;
     notifyListeners();
   }
+
+  Future<void> clearListOfStories() async {
+    _listOfStories = [];
+    _currentPageItems = 1;
+    notifyListeners();
+  }
+
+  // O=========================================================================>
+  // ? Upload Story
+  // <=========================================================================O
 
   Future<void> uploadStory(
     List<int> bytes,
@@ -60,7 +99,7 @@ class StoriesProvider extends ChangeNotifier {
           .uploadDocument(bytes, fileName, description, lat, lon);
       if (resp.error == false) {
         _setlistOfStoriesState(ApiState.success);
-        _setErrorMessage(resp.message ?? "Upload Success.");
+        _setMessage(resp.message ?? "Upload Success.");
         _addResponse = resp;
       } else {
         _setlistOfStoriesState(ApiState.error);
@@ -69,18 +108,31 @@ class StoriesProvider extends ChangeNotifier {
       return;
     } catch (e) {
       _setlistOfStoriesState(ApiState.error);
-      _setErrorMessage(e.toString());
+      _setMessage(e.toString());
     }
   }
 
+  // O=========================================================================>
+  // ? Get list of Stories
+  // <=========================================================================O
+
   Future<void> getListOfStories() async {
     try {
-      _setlistOfStoriesState(ApiState.loading);
-      final resp = await Repository().getStories();
+      if (_currentPageItems == 1) {
+        _setlistOfStoriesState(ApiState.loading);
+      }
+
+      final resp = await Repository().getStories(_currentPageItems!, sizeItems);
       if (resp.error == false) {
+        if (resp.listStory!.length < sizeItems) {
+          _currentPageItems = null;
+        } else {
+          _currentPageItems = _currentPageItems! + 1;
+          _listOfStories.addAll(resp.listStory ?? []);
+        }
+
         _setlistOfStoriesState(ApiState.success);
-        _listOfStories = resp.listStory ?? [];
-        debugPrint('Provider Success');
+        notifyListeners();
       } else {
         _setlistOfStoriesState(ApiState.error);
         _listOfStories = [];
@@ -89,9 +141,13 @@ class StoriesProvider extends ChangeNotifier {
       return;
     } catch (e) {
       _setlistOfStoriesState(ApiState.error);
-      _setErrorMessage(e.toString());
+      _setMessage(e.toString());
     }
   }
+
+  // O=========================================================================>
+  // ? Get story detail
+  // <=========================================================================O
 
   Future<void> getStoryDetail(String id) async {
     try {
@@ -108,7 +164,7 @@ class StoriesProvider extends ChangeNotifier {
       return;
     } catch (e) {
       _setDetailStoryState(ApiState.error);
-      _setErrorMessage(e.toString());
+      _setMessage(e.toString());
     }
   }
 }

@@ -6,3 +6,5 @@ const ValueKey registerScreenKey = ValueKey('register_screen');
 const ValueKey storyListScreenKey = ValueKey('storylist_screen');
 const ValueKey storyDetailScreenKey = ValueKey('storydetail_screen');
 const ValueKey addStoryScreenKey = ValueKey('add_screen');
+const ValueKey storyLocationScreenKey = ValueKey('storylocation_screen');
+const ValueKey storySetLocationScreenKey = ValueKey('storysetlocation_screen');

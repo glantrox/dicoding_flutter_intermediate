@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submission_intermediate/core/static/enum.dart';
@@ -19,11 +20,15 @@ class AuthProvider extends ChangeNotifier {
 
   bool isLoggedIn = false;
 
+  // O=========================================================================>
+  // ? Additional Functions
+  // <=========================================================================O
+
   Future<SharedPreferences> _sharedPref() async {
     return await SharedPreferences.getInstance();
   }
 
-  _setErrorMessage(String? value) async {
+  _setMessage(String? value) async {
     currentError = value ?? "Unknown";
     notifyListeners();
   }
@@ -38,10 +43,21 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  _setLogoutState(AuthState value) async {
-    logoutState = value;
-    notifyListeners();
+  _setDebugMessages(
+    String property,
+    String? clientException,
+    String? apiException,
+  ) {
+    const pembatas =
+        "\nO=========================================================================>\n";
+    return debugPrint(
+      '${pembatas}Debug Exception : $property\nClient Exception:\n${clientException!}',
+    );
   }
+
+  // O=========================================================================>
+  // ? Login user
+  // <=========================================================================O
 
   Future<bool> login(User user) async {
     _setLoginState(AuthState.loading);
@@ -53,6 +69,7 @@ class AuthProvider extends ChangeNotifier {
         pref.setString(tokenKey, repo.loginResult?.token ?? "");
         await authRepository.setLoggedIn();
       } else {
+        _setMessage(repo.message);
         _setLoginState(AuthState.error);
         return false;
       }
@@ -60,11 +77,16 @@ class AuthProvider extends ChangeNotifier {
       _setLoginState(AuthState.init);
       return isLoggedIn;
     } catch (e) {
+      _setDebugMessages('loginUser', e.toString(), null);
       _setLoginState(AuthState.error);
-      _setErrorMessage(e.toString());
+      _setMessage('$e');
     }
     return false;
   }
+
+  // O=========================================================================>
+  // ? Register new user
+  // <=========================================================================O
 
   Future<bool> register(User user) async {
     _setRegisterState(AuthState.loading);
@@ -74,13 +96,14 @@ class AuthProvider extends ChangeNotifier {
         _setRegisterState(AuthState.success);
         return true;
       } else {
+        _setMessage(repo.message);
         _setRegisterState(AuthState.error);
         return false;
       }
     } catch (e) {
+      _setDebugMessages('registerUser', e.toString(), null);
       _setRegisterState(AuthState.error);
-      _setErrorMessage(e.toString());
-      debugPrint('REPOSITORY ERROR ( Register User )\n$e');
+      _setMessage('$e');
     }
     return false;
   }

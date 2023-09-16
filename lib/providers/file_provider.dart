@@ -5,10 +5,18 @@ class FileProvider extends ChangeNotifier {
   String? imagePath;
   XFile? imageFile;
 
+  // O=========================================================================>
+  // ? Set Image Path
+  // <=========================================================================O
+
   void setImagePath(String? value) {
     imagePath = value;
     notifyListeners();
   }
+
+  // O=========================================================================>
+  // ? Set Image File
+  // <=========================================================================O
 
   void setImageFile(XFile? value) {
     imageFile = value;

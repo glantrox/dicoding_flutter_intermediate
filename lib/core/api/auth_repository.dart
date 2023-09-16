@@ -59,11 +59,12 @@ class AuthRepository {
       final response = await post(Uri.parse('$_baseUrl/login'), body: body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        var body = AuthResponse.fromJson(response.body);
+        Map<String, dynamic> mapped = jsonDecode(response.body);
+        var body = AuthResponse.fromJson(mapped);
         return body;
       } else {
-        var error =
-            AuthResponse.fromMap(jsonDecode(response.body)).message.toString();
+        Map<String, dynamic> mapped = jsonDecode(response.body);
+        var error = AuthResponse.fromJson(mapped).message.toString();
 
         throw error;
       }
@@ -92,12 +93,12 @@ class AuthRepository {
       final response = await post(Uri.parse('$_baseUrl/register'), body: field);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        var decoder = jsonDecode(response.body);
-        var body = AuthResponse.fromMap(decoder);
+        Map<String, dynamic> mapped = jsonDecode(response.body);
+        var body = AuthResponse.fromJson(mapped);
         return body;
       } else {
-        var error =
-            AuthResponse.fromMap(jsonDecode(response.body)).message.toString();
+        Map<String, dynamic> mapped = jsonDecode(response.body);
+        var error = AuthResponse.fromJson(mapped).message.toString();
         throw error;
       }
     } on AuthResponse catch (e) {

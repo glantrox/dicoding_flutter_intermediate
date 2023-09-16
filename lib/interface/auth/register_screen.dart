@@ -21,11 +21,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final formKey = GlobalKey<FormState>();
   bool _onObsecure = true;
 
-  // Obsecure Password Form Field
+  // Obsecure Password TextField
   _toggleObsecure() {
     setState(() {
       _onObsecure = !_onObsecure;
     });
+  }
+
+  // Disposes all TextFields
+  _disposeTextFields() {
+    if (_nameController.text.isNotEmpty ||
+        _emailController.text.isNotEmpty ||
+        _passwordController.text.isNotEmpty) {
+      _nameController.dispose();
+      _emailController.dispose();
+      _passwordController.dispose();
+    }
   }
 
   // Register Function
@@ -45,6 +56,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ? widget.onRegister()
           : scaffoldMessenger.showSnackBar(SnackBar(content: Text(error)));
     }
+  }
+
+  @override
+  void dispose() {
+    _disposeTextFields();
+    super.dispose();
   }
 
   @override
